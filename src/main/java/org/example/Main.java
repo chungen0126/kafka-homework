@@ -1,6 +1,9 @@
 package org.example;
 
 import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.header.Header;
+import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 import static java.lang.String.format;
 
@@ -13,8 +16,18 @@ public class Main {
         for (int i = 0; i< Parser.getRecords(); i++){
             String key = String.format("key-%06d", i);
             String value = String.format("value-%06d", i);
-            value+=data;
-            producer.send(new ProducerRecord<>(parser.getTopic(), key, value));
+            Header header = new Header() {
+                @Override
+                public String key() {
+                    return "";
+                }
+
+                @Override
+                public byte[] value() {
+                    return data.getBytes();
+                }
+            };
+            producer.send(new ProducerRecord<>(parser.getTopic(), null, key, value, List.of(header)));
         }
         producer.close();
     }
